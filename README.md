@@ -1,5 +1,5 @@
-# deriva-rola
-roleta de derivadas cod.
+# deriva-roleta
+roleta de derivadas para se aprender com os melhores.
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
