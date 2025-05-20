@@ -1,5 +1,3 @@
-# deriva-roleta
-roleta de derivadas para se aprender com os melhores.
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -55,10 +53,11 @@ roleta de derivadas para se aprender com os melhores.
 <body>
   <h1>🎲 Roleta das Derivadas 🎲</h1>
   <p>Clique no botão e descubra um vídeo para aprender derivadas!</p>
-  <div class="roleta">
+  <div class="roleta" id="roleta">
+    <canvas id="canvas-roleta" width="300" height="300"></canvas>
     <div class="seta"></div>
   </div>
-  <button class="botao" onclick="rodarRoleta()">GIRAR A ROLETA!</button>
+  <button class="botao" id="botao-roleta" onclick="rodarRoleta()">GIRAR A ROLETA!</button>
   <div id="video-container"></div>
 
   <script>
@@ -69,9 +68,72 @@ roleta de derivadas para se aprender com os melhores.
       'https://www.youtube.com/embed/m0uU-9v8EKg', // Derivada do produto e quociente
       'https://www.youtube.com/embed/RSUJ4zyy-Lw'  // Aplicações práticas das derivadas
     ];
+    const labels = [
+      'Básica',
+      'Seno/Cosseno',
+      'Regra da cadeia',
+      'Produto/Quociente',
+      'Aplicações'
+    ];
+    const colors = ['#ff7675', '#74b9ff', '#55efc4', '#ffeaa7', '#fd79a8'];
+    const canvas = document.getElementById('canvas-roleta');
+    const ctx = canvas.getContext('2d');
+    const numSetores = videos.length;
+    const anguloSetor = 2 * Math.PI / numSetores;
+    let girando = false;
+
+    function desenharRoleta(angulo = 0) {
+      ctx.clearRect(0, 0, 300, 300);
+      for (let i = 0; i < numSetores; i++) {
+        ctx.beginPath();
+        ctx.moveTo(150, 150);
+        ctx.arc(150, 150, 140, angulo + i * anguloSetor, angulo + (i + 1) * anguloSetor);
+        ctx.closePath();
+        ctx.fillStyle = colors[i];
+        ctx.fill();
+        // Texto
+        ctx.save();
+        ctx.translate(150, 150);
+        ctx.rotate(angulo + (i + 0.5) * anguloSetor);
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillStyle = '#333';
+        ctx.fillText(labels[i], 120, 10);
+        ctx.restore();
+      }
+    }
+    desenharRoleta();
 
     function rodarRoleta() {
-      const indice = Math.floor(Math.random() * videos.length);
+      if (girando) return;
+      girando = true;
+      document.getElementById('botao-roleta').disabled = true;
+      const indice = Math.floor(Math.random() * numSetores);
+      const voltas = 5 + Math.random() * 2; // 5 a 7 voltas
+      const anguloFinal = 2 * Math.PI * voltas - indice * anguloSetor - anguloSetor / 2;
+      let anguloAtual = 0;
+      const duracao = 3500; // ms
+      const inicio = performance.now();
+
+      function animarRoleta(agora) {
+        const tempo = agora - inicio;
+        const progresso = Math.min(tempo / duracao, 1);
+        // Ease out
+        const ease = 1 - Math.pow(1 - progresso, 3);
+        anguloAtual = ease * anguloFinal;
+        desenharRoleta(anguloAtual);
+        if (progresso < 1) {
+          requestAnimationFrame(animarRoleta);
+        } else {
+          girando = false;
+          document.getElementById('botao-roleta').disabled = false;
+          mostrarVideo(indice);
+        }
+      }
+      requestAnimationFrame(animarRoleta);
+    }
+
+    function mostrarVideo(indice) {
       const url = videos[indice];
       const container = document.getElementById('video-container');
       container.innerHTML = `<iframe src="${url}" frameborder="0" allowfullscreen></iframe>`;
